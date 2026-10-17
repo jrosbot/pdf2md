@@ -1,1 +1,1 @@
-markitdown[pdf]
+-r skills/convert-pdf-to-markdown/requirements.txt

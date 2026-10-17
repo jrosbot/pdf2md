@@ -4,33 +4,35 @@ Convert PDF files into Markdown with Microsoft's [MarkItDown](https://github.com
 
 ## What it does
 
-PDF2MD provides two ways to run the same local-file converter:
+PDF2MD provides two ways to run the converter:
 
-- **ChatGPT Work plugin:** converts PDFs available as local files to the Work execution environment and returns one `.md` file per PDF.
-- **Python CLI:** converts one or more local PDFs into Markdown files.
+- **ChatGPT Work plugin:** converts PDFs attached to a Work chat in Work's cloud execution environment and returns downloadable Markdown files.
+- **Python CLI:** converts local PDFs on the user's computer.
 
 ## ChatGPT integration
 
-This repository contains a GitHub-importable ChatGPT plugin marketplace with a PDF conversion skill. A workspace admin can import the marketplace from GitHub and install or share the plugin within that workspace. The repository can be public or private; the importing GitHub account must be able to read it.
+This repository contains a skills-only ChatGPT plugin package and a GitHub-importable workspace marketplace for testing. The plugin does not require a hosted MCP server.
 
-This is a **plugin with a skill**, not a hosted MCP connector. The skill runs the Python script where it is installed. Making this repository public does not deploy a server or give ChatGPT cloud chats direct access to attached PDF bytes. In Work, the PDF must be available as a local file to the execution environment.
+### Use PDF2MD in ChatGPT Work
 
-To provide a remote `@pdf2md` connector that receives PDFs attached in chat and returns downloadable Markdown files, this project needs a hosted MCP server with a public HTTPS endpoint and a tool for accepting the PDF input and returning the converted file.
+1. Install PDF2MD from the public Plugin Directory after its public release, or install it from the workspace marketplace while testing.
+2. Start a **Work** chat and attach the PDFs to convert.
+3. Invoke `@pdf2md` and ask for Markdown files.
 
-### Import the Work plugin
+The plugin runs its bundled conversion workflow in the Work execution environment. Users do not need Python, Codex, Claude, or a local project folder on their device. The public plugin manifest intentionally does not set `requires_local_executor`, so it is not marked Desktop only.
+
+**File handling:** Work on web and mobile runs in OpenAI's cloud. Attaching a PDF makes it available to ChatGPT/OpenAI for processing in that cloud task. PDF2MD does not send the source PDF to the publisher's server, GitHub, or a separate PDF conversion service. If the PDF must never leave the device, use the local CLI below instead of Cloud Work.
+
+The plugin uses Python and `markitdown[pdf]`. Its skill package includes the dependency declaration at `skills/convert-pdf-to-markdown/requirements.txt`; if MarkItDown is not already available, the workflow installs it in the temporary Work environment. That step may download software packages from the Python package index, but it does not upload the PDF. If the Work environment cannot access the package index, the conversion will report that dependency error.
+
+### Import the workspace marketplace for testing
 
 A workspace admin can import the marketplace from **Admin → Plugins → Add → Import marketplace**:
 
 1. Set **Source** to `https://github.com/jrosbot/pdf2md`.
 2. Leave **Path** empty; the marketplace manifest is at `.agents/plugins/marketplace.json`.
-3. Choose `main`, import the marketplace, and review the plugin's installation policy.
+3. Choose `cloud-work` to test these changes, import the marketplace, and review the plugin's installation policy. After the branch is merged, choose `main`.
 4. Install `pdf2md` from **Plugins** and invoke it with `@pdf2md` in a new Work chat.
-
-The plugin uses Python and `markitdown[pdf]`. Install the dependency in the Python environment used by the Work execution environment:
-
-```bash
-python -m pip install -r requirements.txt
-```
 
 The workspace GitHub marketplace import is an admin feature. If you do not see **Admin → Plugins**, ask your workspace admin to import it and make the plugin available to your role.
 
@@ -132,4 +134,4 @@ To convert multiple PDFs in one run, add their paths after the script name.
 
 - PDF input only; one Markdown output per PDF.
 - Uses MarkItDown for extraction; no OCR service or LLM-based rewriting is added by this project.
-- The CLI and Work plugin operate on local files. There is no hosted MCP conversion endpoint.
+- ChatGPT Work processes chat attachments in OpenAI's cloud. The CLI processes PDFs on the user's device.
