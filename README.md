@@ -51,18 +51,75 @@ These are preparation notes. The listing values still need to be entered in the 
 
 ## Run the converter locally
 
-Requirements: Python and `markitdown[pdf]`.
+The CLI works on Ubuntu, macOS, and Windows. It converts files on your computer; PDF2MD does not upload your PDFs. Installing the Python dependencies requires an internet connection and downloads the required packages.
+
+First, get the repository by cloning it with Git or downloading and extracting the repository ZIP. Then open a terminal in the `pdf2md` folder.
+
+### Ubuntu
+
+Install Python, its virtual-environment support, and Git if they are not already installed:
 
 ```bash
-python -m pip install -r requirements.txt
-python skills/convert-pdf-to-markdown/scripts/convert_pdf.py /path/to/one.pdf /path/to/two.pdf
+sudo apt update
+sudo apt install python3 python3-venv git
 ```
 
-Markdown files are written to `converted-markdown/`. Choose another folder with `--output-dir`:
+Create an isolated Python environment and install the dependencies:
 
 ```bash
-python skills/convert-pdf-to-markdown/scripts/convert_pdf.py report.pdf --output-dir ./md
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
 ```
+
+Convert one or more PDFs:
+
+```bash
+.venv/bin/python skills/convert-pdf-to-markdown/scripts/convert_pdf.py "$HOME/Downloads/report.pdf"
+```
+
+### macOS
+
+Make sure Python 3 and Git are installed. Create an isolated environment and install the dependencies:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Convert one or more PDFs:
+
+```bash
+.venv/bin/python skills/convert-pdf-to-markdown/scripts/convert_pdf.py "$HOME/Downloads/report.pdf"
+```
+
+### Windows (PowerShell)
+
+Make sure Python 3 and Git are installed. In PowerShell, create an isolated environment and install the dependencies:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Convert a PDF:
+
+```powershell
+.\.venv\Scripts\python.exe .\skills\convert-pdf-to-markdown\scripts\convert_pdf.py "$HOME\Downloads\report.pdf"
+```
+
+By default, the Markdown files are written to `converted-markdown/` inside the repository folder. To choose another output folder, add `--output-dir`:
+
+```bash
+# Ubuntu or macOS
+.venv/bin/python skills/convert-pdf-to-markdown/scripts/convert_pdf.py "$HOME/Downloads/report.pdf" --output-dir "$HOME/Documents/markdown"
+```
+
+```powershell
+# Windows
+.\.venv\Scripts\python.exe .\skills\convert-pdf-to-markdown\scripts\convert_pdf.py "$HOME\Downloads\report.pdf" --output-dir "$HOME\Documents\markdown"
+```
+
+To convert multiple PDFs in one run, add their paths after the script name.
 
 ## Current limits
 
