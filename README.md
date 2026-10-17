@@ -53,7 +53,14 @@ These are preparation notes. The listing values still need to be entered in the 
 
 The CLI works on Ubuntu, macOS, and Windows. It converts files on your computer; PDF2MD does not upload your PDFs. Installing the Python dependencies requires an internet connection and downloads the required packages.
 
-First, get the repository by cloning it with Git or downloading and extracting the repository ZIP. Then open a terminal in the `pdf2md` folder.
+Clone the repository and enter its folder (these commands work in bash, zsh, and PowerShell):
+
+```bash
+git clone https://github.com/jrosbot/pdf2md.git
+cd pdf2md
+```
+
+Alternatively, download and extract the repository ZIP, then open a terminal in the extracted `pdf2md` folder.
 
 ### Ubuntu
 
