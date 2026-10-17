@@ -34,19 +34,19 @@ python -m pip install -r requirements.txt
 
 The workspace GitHub marketplace import is an admin feature. If you do not see **Admin → Plugins**, ask your workspace admin to import it and make the plugin available to your role.
 
-## Public directory listing checklist
+## Public directory listing details
 
-The public directory listing requires information that is separate from this repository:
+| Field | Value |
+| --- | --- |
+| Publisher identity | **THE DUCKS IN A ROW S.L.**, the legal entity named on [The Diar legal page](https://www.thediar.com/es/legal/). Its identity still needs verification in the submission portal. |
+| Availability | European Union (EU-27): AT, BE, BG, CY, CZ, DE, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK. |
+| Payments | **No.** The connector does not charge users or require a purchase. |
+| Privacy policy URL | [The Diar legal page](https://www.thediar.com/es/legal/). |
+| Terms of service URL | [The Diar legal page](https://www.thediar.com/es/legal/), as supplied for the listing. |
 
-- [ ] Verified publisher identity, entered in the submission portal.
-- [ ] Supported countries.
-- [ ] Commerce declaration (whether the plugin involves payments or purchases).
-- [x] Website: [PDF2MD repository](https://github.com/jrosbot/pdf2md).
-- [x] Support: [GitHub Issues](https://github.com/jrosbot/pdf2md/issues).
-- [ ] Public privacy policy URL.
-- [ ] Public terms of service URL.
+The legal page identifies THEDIAR and contains its privacy policy. It says the privacy policy should be read with the site's Terms and Conditions for purchases; this URL did not expose a separate terms document. The page says its privacy policy was last updated in May 2018 and describes THEDIAR's website and services. Confirm that the page and applicable terms cover PDF2MD's data handling before submitting.
 
-The privacy and terms pages must be published at accessible HTTPS URLs and describe the plugin's actual data practices. This checklist is not a substitute for those pages or for completing the submission portal.
+These are preparation notes. The listing values still need to be entered in the submission portal; this README does not populate them.
 
 ## Run the converter locally
 
