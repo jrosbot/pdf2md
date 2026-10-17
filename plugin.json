@@ -3,5 +3,13 @@
   "name": "pdf2md",
   "version": "0.1.0",
   "description": "Convert PDFs to Markdown with Microsoft's MarkItDown.",
-  "repository": "https://github.com/jrosbot/pdf2md"
+  "repository": "https://github.com/jrosbot/pdf2md",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "logo": "assets/pdf2md-icon.png",
+        "composerIcon": "assets/pdf2md-icon.png"
+      }
+    }
+  }
 }

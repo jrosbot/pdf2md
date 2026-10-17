@@ -43,6 +43,7 @@ The workspace GitHub marketplace import is an admin feature. If you do not see *
 | Payments | **No.** The connector does not charge users or require a purchase. |
 | Privacy policy URL | [The Diar legal page](https://www.thediar.com/es/legal/). |
 | Terms of service URL | [The Diar legal page](https://www.thediar.com/es/legal/), as supplied for the listing. |
+| Icon asset | `assets/pdf2md-icon.png` (512 × 512 PNG). |
 
 The publisher confirms that the privacy policy and terms at this legal page apply to PDF2MD. The page says its privacy policy was last updated in May 2018.
 
