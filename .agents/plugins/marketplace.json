@@ -1,0 +1,16 @@
+{
+  "name": "pdf2md",
+  "interface": {
+    "displayName": "PDF2MD"
+  },
+  "plugins": [
+    {
+      "name": "pdf2md",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
