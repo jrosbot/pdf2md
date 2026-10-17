@@ -2,6 +2,6 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pdf2md",
   "version": "0.1.0",
-  "description": "Convert PDFs to Markdown with Microsoft MarkItDown; optionally publish the Markdown outputs to a GitHub Release.",
+  "description": "Convert PDFs to Markdown with Microsoft's MarkItDown.",
   "repository": "https://github.com/jrosbot/pdf2md"
 }
