@@ -49,7 +49,7 @@ The workspace GitHub marketplace import is an admin feature. If you do not see *
 
 The publisher confirms that the privacy policy and terms at this legal page apply to PDF2MD. The page says its privacy policy was last updated in May 2018.
 
-These are preparation notes. The listing values still need to be entered in the submission portal; this README does not populate them.
+The listing metadata is also included in `plugin.json` so the public submission portal can prefill it. Confirm the verified Developer identity and review the imported fields before submitting.
 
 ## Run the converter locally
 
