@@ -55,6 +55,8 @@ https://mcp.example.com/oauth/callback/apple
 
 The SQLite directory must be on persistent storage. For more than one server replica, put the OAuth and quota store behind a shared database before scaling horizontally. Set `PDF2MD_ALLOWED_DOWNLOAD_HOSTS` to the exact public file-service hosts accepted by the deployment; the server rejects non-HTTPS URLs, localhost, private IPs, and redirects.
 
+For the provider-by-provider credential setup, see [`docs/oauth-credentials.md`](docs/oauth-credentials.md). It covers Google, Microsoft, Apple, callback URLs, secret storage, and the final connection test.
+
 Run locally for a protocol smoke test:
 
 ```bash
