@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pdf2md",
-  "version": "0.1.0",
-  "description": "Convert PDF attachments in ChatGPT Work into Markdown, with an optional local Python CLI.",
+  "version": "0.2.0",
+  "description": "Convert PDF attachments into Markdown through an authenticated MCP server, with an optional local Python CLI.",
   "author": {
     "name": "THE DUCKS IN A ROW S.L.",
     "url": "https://www.thediar.com/"
@@ -13,7 +13,7 @@
       "interface": {
         "displayName": "PDF2MD",
         "shortDescription": "Convert PDFs to Markdown",
-        "longDescription": "Convert PDF files attached to a ChatGPT Work chat into downloadable Markdown files using Microsoft MarkItDown. Work processes attachments in OpenAI's cloud environment; PDF2MD does not send source PDFs to a publisher-operated conversion server or GitHub. For local, on-device conversion, the repository also provides a Python command-line tool.",
+        "longDescription": "Convert PDF files attached to a ChatGPT chat into downloadable Markdown files using Microsoft MarkItDown. PDF2MD receives the attachment through an authenticated MCP endpoint, processes it temporarily, deletes the source after conversion, and does not retain the PDF or generated Markdown. For local, on-device conversion, the repository also provides a Python command-line tool.",
         "developerName": "THE DUCKS IN A ROW S.L.",
         "category": "Productivity",
         "defaultPrompt": [
@@ -60,7 +60,7 @@
           "SI",
           "SK"
         ],
-        "release_notes": "Initial public submission. Converts PDF attachments in ChatGPT Work to downloadable Markdown files."
+        "release_notes": "Adds an authenticated MCP server with Google, Microsoft and Apple OAuth/OIDC, a 100 MB daily quota per account, and temporary PDF processing."
       }
     }
   }

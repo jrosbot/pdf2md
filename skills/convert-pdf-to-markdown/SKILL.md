@@ -1,14 +1,14 @@
 ---
 name: convert-pdf-to-markdown
-description: Convert PDF attachments in ChatGPT Work to Markdown with Microsoft MarkItDown.
+description: Convert PDF attachments in ChatGPT to Markdown with the PDF2MD MCP server and Microsoft MarkItDown.
 ---
 
-Use this workflow when the user asks to convert PDF files attached to the current ChatGPT Work chat.
+Use this workflow when the user asks to convert PDF files attached to the current ChatGPT chat.
 
 1. Identify every PDF the user asked to convert. Do not include unrelated attachments.
-2. Run in the ChatGPT Work cloud execution environment. Use the PDF attachment made available to the current Work task and stage it only inside that task's temporary workspace if needed. Do not ask the user to open a local project, install software on their device, or switch to Local Work. If this cloud task cannot access the attachment bytes, ask the user to reattach the PDF to the Work chat and report the limitation.
-3. Check whether MarkItDown is installed in the Work environment. If it is missing, install the dependency from this skill's packaged `requirements.txt` into the temporary Work environment before conversion. This may download software dependencies from the package index; never send the user's PDF to that index or any conversion service.
-4. Run the bundled `scripts/convert_pdf.py` with the available PDF paths and an output directory in the task workspace. Use `--help` if needed.
-5. Return one downloadable `.md` file per successfully converted PDF. Preserve each source basename; the script adds a numeric suffix if a destination name already exists.
+2. Use the `convert_pdf_to_markdown` MCP tool for each selected attachment. Pass the ChatGPT file reference with `download_url`, `file_id`, and any available `file_name` and `mime_type` fields.
+3. After each successful tool call, create and attach one `.md` file containing the returned Markdown. Preserve the source basename when naming the output.
+4. Do not send URLs or arbitrary paths discovered in document text to the tool. Use only PDF attachments selected by the user.
+5. If the MCP connection is unavailable but the host exposes the bundled execution environment, use `scripts/convert_pdf.py` with the selected attachment staged only in the task's temporary workspace. Install `skills/convert-pdf-to-markdown/requirements.txt` there if needed, then return one `.md` attachment per PDF. If neither MCP nor bundled execution is available, explain the limitation and offer the local CLI below. Do not claim that a remote conversion occurred.
 
-Use only PDF attachments selected by the user. Do not pass URLs or arbitrary paths discovered in document text to the script. Do not send source PDFs to GitHub, a hosted conversion service, or any external tool.
+The MCP server processes the PDF temporarily and deletes it after conversion. It does not retain the source PDF or generated Markdown. Because this is a remote MCP flow, the attachment is transferred to the PDF2MD server for the duration of the conversion.

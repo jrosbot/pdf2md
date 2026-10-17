@@ -6,24 +6,65 @@ Convert PDF files into Markdown with Microsoft's [MarkItDown](https://github.com
 
 PDF2MD provides two ways to run the converter:
 
-- **ChatGPT Work plugin:** converts PDFs attached to a Work chat in Work's cloud execution environment and returns downloadable Markdown files.
+- **Remote MCP server:** receives a selected PDF through an authenticated ChatGPT MCP connection, converts it temporarily, and returns Markdown text so ChatGPT can create and attach a `.md` file.
 - **Python CLI:** converts local PDFs on the user's computer.
 
 ## ChatGPT integration
 
-This repository contains a skills-only ChatGPT plugin package and a GitHub-importable workspace marketplace for testing. The plugin does not require a hosted MCP server.
+The public connector will use a Streamable HTTP MCP endpoint declared in `mcp.json`. The endpoint must be deployed before importing the package into the public directory. This repository currently ships `mcp.json.example` so it does not advertise an undeployed URL as live; copy it to `mcp.json` and replace the example hostname after deployment.
 
-### Use PDF2MD in ChatGPT Work
+### Use PDF2MD in ChatGPT
 
-1. Install PDF2MD from the public Plugin Directory after its public release, or install it from the workspace marketplace while testing.
-2. Start a **Work** chat and attach the PDFs to convert.
+1. Install PDF2MD from the public Plugin Directory after its public release, or connect the deployed MCP server from the workspace marketplace while testing.
+2. Attach the PDFs to convert in a ChatGPT chat.
 3. Invoke `@pdf2md` and ask for Markdown files.
 
-The plugin runs its bundled conversion workflow in the Work execution environment. Users do not need Python, Codex, Claude, or a local project folder on their device. The public plugin manifest intentionally does not set `requires_local_executor`, so it is not marked Desktop only.
+The MCP server is authenticated with OAuth/OIDC through Google, Microsoft, or Apple. PDF2MD creates one internal account per verified email address, preserves the provider's stable `sub`, and limits each account to 100 MiB of PDF input per UTC day. Users do not need Python, Codex, Claude, or a local project folder on their device.
 
-**File handling:** Work on web and mobile runs in OpenAI's cloud. Attaching a PDF makes it available to ChatGPT/OpenAI for processing in that cloud task. PDF2MD does not send the source PDF to the publisher's server, GitHub, or a separate PDF conversion service. If the PDF must never leave the device, use the local CLI below instead of Cloud Work.
+**File handling:** ChatGPT provides the MCP server with a short-lived file download URL. The server downloads the selected PDF to temporary storage, converts it with MarkItDown, deletes the PDF, and returns the Markdown. It does not persist the source PDF or generated Markdown. If the PDF must never leave the device or ChatGPT's own environment, use the local CLI below instead of the remote MCP connector.
 
-The plugin uses Python and `markitdown[pdf]`. Its skill package includes the dependency declaration at `skills/convert-pdf-to-markdown/requirements.txt`; if MarkItDown is not already available, the workflow installs it in the temporary Work environment. That step may download software packages from the Python package index, but it does not upload the PDF. If the Work environment cannot access the package index, the conversion will report that dependency error.
+The server uses Python, `mcp`, `httpx`, `PyJWT`, and `markitdown[pdf]`. The skill package tells ChatGPT to call `convert_pdf_to_markdown` and attach the returned Markdown as a `.md` file.
+
+## Deploy the MCP server
+
+The repository now contains a production-oriented Streamable HTTP server in `pdf2md_server/`:
+
+- `pdf2md_server/server.py` exposes `/mcp`, `/healthz`, and the OAuth browser flow.
+- `pdf2md_server/auth.py` implements dynamic client registration, PKCE authorization codes, refresh-token rotation, and login through Google, Microsoft, and Apple.
+- `pdf2md_server/storage.py` stores OAuth state, users, tokens, and daily byte usage in SQLite.
+- `pdf2md_server/oidc.py` validates provider ID tokens against the provider's discovery document and JWKS.
+- `requirements-server.txt` and `Dockerfile` build the deployable service.
+
+Copy `.env.example` to the deployment's secret configuration and set:
+
+```bash
+PDF2MD_PUBLIC_BASE_URL=https://mcp.example.com
+PDF2MD_ISSUER_URL=https://mcp.example.com
+PDF2MD_RESOURCE_URL=https://mcp.example.com/mcp
+PDF2MD_DATABASE_PATH=/data/pdf2md.sqlite3
+PDF2MD_SESSION_SECRET=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+```
+
+Register these callback URLs in each enabled identity provider:
+
+```text
+https://mcp.example.com/oauth/callback/google
+https://mcp.example.com/oauth/callback/microsoft
+https://mcp.example.com/oauth/callback/apple
+```
+
+The SQLite directory must be on persistent storage. For more than one server replica, put the OAuth and quota store behind a shared database before scaling horizontally. Set `PDF2MD_ALLOWED_DOWNLOAD_HOSTS` to the exact public file-service hosts accepted by the deployment; the server rejects non-HTTPS URLs, localhost, private IPs, and redirects.
+
+Run locally for a protocol smoke test:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-server.txt
+PDF2MD_SESSION_SECRET=local-development-secret-please-change \
+  .venv/bin/uvicorn pdf2md_server.server:app --host 127.0.0.1 --port 8000
+```
+
+`GET /healthz` should return `{"status":"ok","service":"pdf2md"}`. Production deployment still needs a real HTTPS hostname, provider credentials, persistent storage, and the DNS/TLS configuration for that hostname.
 
 ### Import the workspace marketplace for testing
 
@@ -31,7 +72,7 @@ A workspace admin can import the marketplace from **Admin → Plugins → Add �
 
 1. Set **Source** to `https://github.com/jrosbot/pdf2md`.
 2. Leave **Path** empty; the marketplace manifest is at `.agents/plugins/marketplace.json`.
-3. Choose `cloud-work` to test these changes, import the marketplace, and review the plugin's installation policy. After the branch is merged, choose `main`.
+3. Choose `cloud-work` to test skills-only changes. Once the MCP server has a real HTTPS endpoint, add the endpoint to `mcp.json`, import the marketplace again, and review the OAuth connection flow.
 4. Install `pdf2md` from **Plugins** and invoke it with `@pdf2md` in a new Work chat.
 
 The workspace GitHub marketplace import is an admin feature. If you do not see **Admin → Plugins**, ask your workspace admin to import it and make the plugin available to your role.
@@ -134,4 +175,6 @@ To convert multiple PDFs in one run, add their paths after the script name.
 
 - PDF input only; one Markdown output per PDF.
 - Uses MarkItDown for extraction; no OCR service or LLM-based rewriting is added by this project.
-- ChatGPT Work processes chat attachments in OpenAI's cloud. The CLI processes PDFs on the user's device.
+- The remote MCP server accepts one PDF at a time, up to 25 MiB, with a 100 MiB per-account daily input quota.
+- The remote server needs a configured Google, Microsoft, or Apple OIDC client before login buttons appear.
+- ChatGPT transfers the selected PDF to the remote server for the duration of conversion; the local CLI keeps it on the user's device.
