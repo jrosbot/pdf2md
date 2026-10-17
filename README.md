@@ -34,6 +34,20 @@ python -m pip install -r requirements.txt
 
 The workspace GitHub marketplace import is an admin feature. If you do not see **Admin → Plugins**, ask your workspace admin to import it and make the plugin available to your role.
 
+## Public directory listing checklist
+
+The public directory listing requires information that is separate from this repository:
+
+- [ ] Verified publisher identity, entered in the submission portal.
+- [ ] Supported countries.
+- [ ] Commerce declaration (whether the plugin involves payments or purchases).
+- [x] Website: [PDF2MD repository](https://github.com/jrosbot/pdf2md).
+- [x] Support: [GitHub Issues](https://github.com/jrosbot/pdf2md/issues).
+- [ ] Public privacy policy URL.
+- [ ] Public terms of service URL.
+
+The privacy and terms pages must be published at accessible HTTPS URLs and describe the plugin's actual data practices. This checklist is not a substitute for those pages or for completing the submission portal.
+
 ## Run the converter locally
 
 Requirements: Python and `markitdown[pdf]`.
