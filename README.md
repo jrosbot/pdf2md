@@ -44,7 +44,7 @@ The workspace GitHub marketplace import is an admin feature. If you do not see *
 | Privacy policy URL | [The Diar legal page](https://www.thediar.com/es/legal/). |
 | Terms of service URL | [The Diar legal page](https://www.thediar.com/es/legal/), as supplied for the listing. |
 
-The legal page identifies THEDIAR and contains its privacy policy. It says the privacy policy should be read with the site's Terms and Conditions for purchases; this URL did not expose a separate terms document. The page says its privacy policy was last updated in May 2018 and describes THEDIAR's website and services. Confirm that the page and applicable terms cover PDF2MD's data handling before submitting.
+The publisher confirms that the privacy policy and terms at this legal page apply to PDF2MD. The page says its privacy policy was last updated in May 2018.
 
 These are preparation notes. The listing values still need to be entered in the submission portal; this README does not populate them.
 
