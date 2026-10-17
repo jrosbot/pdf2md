@@ -2,13 +2,65 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pdf2md",
   "version": "0.1.0",
-  "description": "Convert PDFs to Markdown with Microsoft's MarkItDown.",
+  "description": "Convert PDF attachments in ChatGPT Work into Markdown, with an optional local Python CLI.",
+  "author": {
+    "name": "THE DUCKS IN A ROW S.L.",
+    "url": "https://www.thediar.com/"
+  },
   "repository": "https://github.com/jrosbot/pdf2md",
   "extensions": {
     "com.openai": {
       "interface": {
-        "logo": "assets/pdf2md-icon.png",
-        "composerIcon": "assets/pdf2md-icon.png"
+        "displayName": "PDF2MD",
+        "shortDescription": "Convert PDFs to Markdown",
+        "longDescription": "Convert PDF files attached to a ChatGPT Work chat into downloadable Markdown files using Microsoft MarkItDown. Work processes attachments in OpenAI's cloud environment; PDF2MD does not send source PDFs to a publisher-operated conversion server or GitHub. For local, on-device conversion, the repository also provides a Python command-line tool.",
+        "developerName": "THE DUCKS IN A ROW S.L.",
+        "category": "Productivity",
+        "defaultPrompt": [
+          "Convert the attached PDF to Markdown.",
+          "Convert all attached PDFs to Markdown."
+        ],
+        "websiteURL": "https://github.com/jrosbot/pdf2md",
+        "supportURL": "https://github.com/jrosbot/pdf2md/issues",
+        "privacyPolicyURL": "https://www.thediar.com/es/legal/",
+        "termsOfServiceURL": "https://www.thediar.com/es/legal/",
+        "logo": "./assets/pdf2md-icon.png",
+        "composerIcon": "./assets/pdf2md-icon.png"
+      },
+      "review": {
+        "commerce": false
+      },
+      "publication": {
+        "countries": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "ES",
+          "FI",
+          "FR",
+          "GR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "release_notes": "Initial public submission. Converts PDF attachments in ChatGPT Work to downloadable Markdown files."
       }
     }
   }
