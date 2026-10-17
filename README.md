@@ -31,7 +31,7 @@ A workspace admin can import the marketplace from **Admin → Plugins → Add �
 
 1. Set **Source** to `https://github.com/jrosbot/pdf2md`.
 2. Leave **Path** empty; the marketplace manifest is at `.agents/plugins/marketplace.json`.
-3. Choose `main`, import the marketplace, and review the plugin's installation policy.
+3. Choose `cloud-work` to test these changes, import the marketplace, and review the plugin's installation policy. After the branch is merged, choose `main`.
 4. Install `pdf2md` from **Plugins** and invoke it with `@pdf2md` in a new Work chat.
 
 The workspace GitHub marketplace import is an admin feature. If you do not see **Admin → Plugins**, ask your workspace admin to import it and make the plugin available to your role.
