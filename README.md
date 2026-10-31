@@ -69,7 +69,7 @@ PDF2MD_SESSION_SECRET=local-development-secret-please-change \
 
 `GET /healthz` should return `{"status":"ok","service":"pdf2md"}`. Production deployment still needs a real HTTPS hostname, provider credentials, persistent storage, and the DNS/TLS configuration for that hostname.
 
-For a containerized smoke test on Ubuntu, macOS, or Windows, copy `.env.docker.example` to `.env` and run `docker compose up --build`. The server is bound to `127.0.0.1:8000`; see [`docs/local-docker.md`](docs/local-docker.md) for the health check and ChatGPT tunnel setup. ChatGPT cannot call a developer computer's `localhost` directly. In development the server also exposes an authenticated `echo` tool, so you can test sign-in and MCP without uploading a PDF; production omits that test tool.
+For a containerized smoke test on Ubuntu, macOS, or Windows, copy `.env.docker.example` to `.env` and run `docker compose up --build`. The server is bound to `127.0.0.1:8000`; see [`docs/local-docker.md`](docs/local-docker.md) for the ngrok HTTPS development URL, provider callbacks, and ChatGPT Work Desktop test steps. ChatGPT cannot call a developer computer's `localhost` directly. In development the server also exposes an authenticated `echo` tool, so you can test sign-in and MCP without uploading a PDF; production omits that test tool.
 
 ### Import the workspace marketplace for testing
 
