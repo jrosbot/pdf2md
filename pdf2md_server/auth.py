@@ -219,13 +219,18 @@ class PDF2MDOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, Re
 
     async def provider_callback(self, request: Request) -> Response:
         provider_name = request.path_params["provider"]
-        provider_state = request.query_params.get("state", "")
+        callback_fields = dict(request.query_params)
+        if request.method == "POST":
+            if provider_name != "apple":
+                return self._page("Invalid sign-in response", "<p>Start the connection again.</p>", 405)
+            callback_fields.update(await self._form_fields(request))
+        provider_state = callback_fields.get("state", "")
         auth_request = self.store.get_auth_request_by_provider_state(provider_state)
         if not auth_request or auth_request["provider_name"] != provider_name:
             return self._page("Invalid or expired sign-in response", "<p>Start the connection again.</p>", 400)
-        if request.query_params.get("error"):
+        if callback_fields.get("error"):
             return self._page("Sign-in cancelled", '<p><a href="/login?state=' + html.escape(auth_request["state"]) + '">Try another method</a></p>')
-        code = request.query_params.get("code")
+        code = callback_fields.get("code")
         oidc = self.oidc.get(provider_name)
         if not code or not oidc:
             return self._page("Sign-in failed", '<p><a href="/login?state=' + html.escape(auth_request["state"]) + '">Try again</a></p>', 400)
