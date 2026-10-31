@@ -63,7 +63,7 @@ app or keep it online after you stop the tunnel.
 
    Start with one provider. Follow [OAuth credential setup](oauth-credentials.md)
    for provider configuration. Apple web sign-in requires a registered HTTPS
-   domain and return URL; a stable hostname is especially helpful. For
+   domain and return URL. Apple sends that callback as an HTTP POST, which PDF2MD now handles. A stable hostname is especially helpful. For
    email/password, configure Brevo instead.
 
 5. Start the app after saving `.env`:
