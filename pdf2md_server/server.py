@@ -202,7 +202,7 @@ def create_server(settings: Settings | None = None) -> tuple[MCPServer, SQLiteSt
     async def provider_login(request: Request) -> Response:
         return await oauth.start_provider_login(request)
 
-    @server.custom_route("/oauth/callback/{provider}", methods=["GET"], include_in_schema=False)
+    @server.custom_route("/oauth/callback/{provider}", methods=["GET", "POST"], include_in_schema=False)
     async def provider_callback(request: Request) -> Response:
         return await oauth.provider_callback(request)
 
