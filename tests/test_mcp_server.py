@@ -205,6 +205,76 @@ class McpAuthTests(unittest.TestCase):
         self.assertIsNone(identity.email)
         self.assertFalse(identity.email_verified)
 
+    def test_apple_oidc_uses_supported_web_flow(self):
+        client = OIDCClient(ProviderSettings(
+            "apple", "https://appleid.apple.com", "apple-client", "apple-secret",
+            scopes=("openid", "email", "name"), supports_pkce=False, response_mode="form_post",
+        ))
+        client.discovery = AsyncMock(return_value={
+            "authorization_endpoint": "https://appleid.apple.com/auth/authorize"
+        })
+        url = asyncio.run(client.authorization_url(
+            state="state", nonce="nonce", verifier="verifier",
+            redirect_uri="https://auth.example.com/oauth/callback/apple",
+        ))
+        params = parse_qs(urlparse(url).query)
+        self.assertEqual(params["scope"], ["openid email name"])
+        self.assertEqual(params["response_mode"], ["form_post"])
+        self.assertNotIn("code_challenge", params)
+        self.assertNotIn("code_challenge_method", params)
+
+    def test_apple_form_post_callback_completes_login(self):
+        from dataclasses import replace
+        from pdf2md_server.server import create_server
+
+        apple = ProviderSettings(
+            "apple", "https://appleid.apple.com", "apple-client", "apple-secret",
+            scopes=("openid", "email", "name"), supports_pkce=False, response_mode="form_post",
+        )
+        settings = replace(self.settings, providers=(apple,))
+        mcp_server, store = create_server(settings)
+        app = mcp_server.streamable_http_app(streamable_http_path="/mcp", json_response=True)
+        state = "apple-post-state"
+        store.save_auth_request(
+            state=state, client_id="test-client", redirect_uri="http://127.0.0.1:8765/callback",
+            redirect_uri_explicit=True, client_state="chat-state", scopes=["pdf:convert"],
+            code_challenge="test-challenge", resource=settings.resource_url,
+            expires_at=int(time.time()) + 1800,
+        )
+        store.set_provider_state(state, provider_name="apple", provider_state="apple-provider-state",
+                                 provider_nonce="apple-nonce", provider_verifier="apple-verifier")
+
+        async def fake_exchange_code(_client, *, code, verifier, redirect_uri):
+            self.assertEqual(code, "apple-code")
+            self.assertEqual(redirect_uri, f"{settings.public_base_url}/oauth/callback/apple")
+            return {"id_token": "apple-id-token"}
+
+        async def fake_identity(_client, token_response, *, nonce):
+            self.assertEqual(nonce, "apple-nonce")
+            return Identity("apple", "apple-subject", "person@example.com", True)
+
+        async def exercise():
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://localhost:8000") as client:
+                response = await client.post(
+                    "/oauth/callback/apple",
+                    data={"state": "apple-provider-state", "code": "apple-code"},
+                    follow_redirects=False,
+                )
+                self.assertEqual(response.status_code, 302)
+                user_id = store.get_identity_user_id("apple", "apple-subject")
+                self.assertIsNotNone(user_id)
+                user = store.get_user(user_id)
+                self.assertEqual(user.email, "person@example.com")
+                self.assertTrue(user.email_verified)
+
+        try:
+            with patch.object(OIDCClient, "exchange_code", fake_exchange_code), \
+                 patch.object(OIDCClient, "identity", fake_identity):
+                asyncio.run(exercise())
+        finally:
+            store.close()
+
     def test_user_can_choose_only_verified_emails_linked_to_account(self):
         user_id = self.create_account()
         pending = self.store.create_pending_identity(
