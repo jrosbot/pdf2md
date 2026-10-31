@@ -1,0 +1,50 @@
+services:
+  pdf2md:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pdf2md:local
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:rw,nosuid,noexec,size=512m
+    environment:
+      PDF2MD_ENV: ${PDF2MD_ENV:-development}
+      PDF2MD_PUBLIC_BASE_URL: ${PDF2MD_PUBLIC_BASE_URL:-http://localhost:8000}
+      PDF2MD_ISSUER_URL: ${PDF2MD_ISSUER_URL:-http://localhost:8000}
+      PDF2MD_RESOURCE_URL: ${PDF2MD_RESOURCE_URL:-http://localhost:8000/mcp}
+      PDF2MD_DATABASE_PATH: /data/pdf2md.sqlite3
+      PDF2MD_SESSION_SECRET: ${PDF2MD_SESSION_SECRET:-local-development-only-change-me}
+      PDF2MD_ALLOWED_DOWNLOAD_HOSTS: ${PDF2MD_ALLOWED_DOWNLOAD_HOSTS:-}
+      PDF2MD_GOOGLE_CLIENT_ID: ${PDF2MD_GOOGLE_CLIENT_ID:-}
+      PDF2MD_GOOGLE_CLIENT_SECRET: ${PDF2MD_GOOGLE_CLIENT_SECRET:-}
+      PDF2MD_MICROSOFT_CLIENT_ID: ${PDF2MD_MICROSOFT_CLIENT_ID:-}
+      PDF2MD_MICROSOFT_CLIENT_SECRET: ${PDF2MD_MICROSOFT_CLIENT_SECRET:-}
+      PDF2MD_APPLE_CLIENT_ID: ${PDF2MD_APPLE_CLIENT_ID:-}
+      PDF2MD_APPLE_CLIENT_SECRET: ${PDF2MD_APPLE_CLIENT_SECRET:-}
+      PDF2MD_BREVO_API_KEY: ${PDF2MD_BREVO_API_KEY:-}
+      PDF2MD_EMAIL_FROM: ${PDF2MD_EMAIL_FROM:-}
+      PDF2MD_EMAIL_FROM_NAME: ${PDF2MD_EMAIL_FROM_NAME:-PDF2MD}
+      PDF2MD_MAX_FILE_BYTES: ${PDF2MD_MAX_FILE_BYTES:-26214400}
+      PDF2MD_DAILY_QUOTA_BYTES: ${PDF2MD_DAILY_QUOTA_BYTES:-104857600}
+    ports:
+      - "127.0.0.1:${PDF2MD_PORT:-8000}:8000"
+    volumes:
+      - pdf2md-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/healthz', timeout=2).read()"
+      interval: 20s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  pdf2md-data:

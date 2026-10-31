@@ -19,7 +19,7 @@ The public connector will use a Streamable HTTP MCP endpoint declared in `mcp.js
 2. Attach the PDFs to convert in a ChatGPT chat.
 3. Invoke `@pdf2md` and ask for Markdown files.
 
-The MCP server is authenticated with OAuth/OIDC through Google, Microsoft, or Apple. PDF2MD creates one internal account per verified email address, preserves the provider's stable `sub`, and limits each account to 100 MiB of PDF input per UTC day. Users do not need Python, Codex, Claude, or a local project folder on their device.
+The MCP server supports email/password (with verification and transactional email through Brevo), Google, Microsoft, and Apple. PDF2MD gives each account a stable internal ID and stores each sign-in method as a separate identity keyed by the provider's stable subject. It records the verified emails supplied by those identities, initializes the transactional email from the first verified address, and lets the user choose another verified address later. Matching emails never merge accounts automatically: when a new method matches an existing account, the user must prove access with an already-linked method before PDF2MD links it. Each account has a 100 MiB daily PDF input quota.
 
 **File handling:** ChatGPT provides the MCP server with a short-lived file download URL. The server downloads the selected PDF to temporary storage, converts it with MarkItDown, deletes the PDF, and returns the Markdown. It does not persist the source PDF or generated Markdown. If the PDF must never leave the device or ChatGPT's own environment, use the local CLI below instead of the remote MCP connector.
 
@@ -30,8 +30,9 @@ The server uses Python, `mcp`, `httpx`, `PyJWT`, and `markitdown[pdf]`. The skil
 The repository now contains a production-oriented Streamable HTTP server in `pdf2md_server/`:
 
 - `pdf2md_server/server.py` exposes `/mcp`, `/healthz`, and the OAuth browser flow.
-- `pdf2md_server/auth.py` implements dynamic client registration, PKCE authorization codes, refresh-token rotation, and login through Google, Microsoft, and Apple.
-- `pdf2md_server/storage.py` stores OAuth state, users, tokens, and daily byte usage in SQLite.
+- `pdf2md_server/auth.py` implements dynamic client registration, PKCE authorization codes, refresh-token rotation, and login through email/password, Google, Microsoft, and Apple.
+- `pdf2md_server/storage.py` stores accounts, sign-in identities, per-method email verification, OAuth tokens, and daily byte usage in SQLite.
+- `pdf2md_server/mailer.py` sends verification and password-reset messages through Brevo; password hashes use scrypt.
 - `pdf2md_server/oidc.py` validates provider ID tokens against the provider's discovery document and JWKS.
 - `requirements-server.txt` and `Dockerfile` build the deployable service.
 
@@ -67,6 +68,8 @@ PDF2MD_SESSION_SECRET=local-development-secret-please-change \
 ```
 
 `GET /healthz` should return `{"status":"ok","service":"pdf2md"}`. Production deployment still needs a real HTTPS hostname, provider credentials, persistent storage, and the DNS/TLS configuration for that hostname.
+
+For a containerized smoke test on Ubuntu, macOS, or Windows, copy `.env.docker.example` to `.env` and run `docker compose up --build`. The server is bound to `127.0.0.1:8000`; see [`docs/local-docker.md`](docs/local-docker.md) for the ngrok HTTPS development URL, provider callbacks, and ChatGPT Work Desktop test steps. ChatGPT cannot call a developer computer's `localhost` directly. In development the server also exposes an authenticated `echo` tool, so you can test sign-in and MCP without uploading a PDF; production omits that test tool.
 
 ### Import the workspace marketplace for testing
 
@@ -178,5 +181,6 @@ To convert multiple PDFs in one run, add their paths after the script name.
 - PDF input only; one Markdown output per PDF.
 - Uses MarkItDown for extraction; no OCR service or LLM-based rewriting is added by this project.
 - The remote MCP server accepts one PDF at a time, up to 25 MiB, with a 100 MiB per-account daily input quota.
-- The remote server needs a configured Google, Microsoft, or Apple OIDC client before login buttons appear.
-- ChatGPT transfers the selected PDF to the remote server for the duration of conversion; the local CLI keeps it on the user's device.
+- Email/password registration and verification require a Brevo API key and a verified sender. Google, Microsoft, and Apple require their respective OAuth client credentials.
+- A matching email does not link two accounts; the user must sign in with an existing method first.
+- ChatGPT stores an attached PDF and gives the MCP server a short-lived download URL. The remote MCP server downloads and deletes the temporary file; the local CLI keeps the PDF on the user's device.

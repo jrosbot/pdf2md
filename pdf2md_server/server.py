@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import json
 import os
 import socket
 import tempfile
@@ -131,7 +132,7 @@ def create_server(settings: Settings | None = None) -> tuple[MCPServer, SQLiteSt
             "retain the source or generated Markdown."
         ),
         website_url="https://github.com/jrosbot/pdf2md",
-        version="0.2.0",
+        version="0.3.0",
         auth_server_provider=oauth,
         auth=AuthSettings(
             issuer_url=settings.issuer_url,
@@ -145,6 +146,22 @@ def create_server(settings: Settings | None = None) -> tuple[MCPServer, SQLiteSt
             ),
         ),
     )
+
+    # A small authenticated smoke-test tool is available only in local/dev
+    # deployments. It lets us verify the OAuth-protected MCP connection without
+    # uploading a PDF. Keep it out of production tool listings.
+    if os.getenv("PDF2MD_ENV", "development").lower() != "production":
+        @server.tool(
+            name="echo",
+            title="Echo (development test)",
+            description="Return the supplied text unchanged to verify the authenticated MCP connection.",
+            structured_output=False,
+        )
+        async def echo(message: str, ctx: Context) -> str:
+            access_token = get_access_token()
+            if not access_token or not access_token.subject:
+                raise PermissionError("A PDF2MD account is required")
+            return message
 
     @server.tool(
         name="convert_pdf_to_markdown",
@@ -185,9 +202,67 @@ def create_server(settings: Settings | None = None) -> tuple[MCPServer, SQLiteSt
     async def provider_login(request: Request) -> Response:
         return await oauth.start_provider_login(request)
 
-    @server.custom_route("/oauth/callback/{provider}", methods=["GET"], include_in_schema=False)
+    @server.custom_route("/oauth/callback/{provider}", methods=["GET", "POST"], include_in_schema=False)
     async def provider_callback(request: Request) -> Response:
         return await oauth.provider_callback(request)
+
+    @server.custom_route("/auth/password/login", methods=["POST"], include_in_schema=False)
+    async def password_login(request: Request) -> Response:
+        return await oauth.password_login(request)
+
+    @server.custom_route("/auth/password/register", methods=["POST"], include_in_schema=False)
+    async def password_register(request: Request) -> Response:
+        return await oauth.password_register(request)
+
+    @server.custom_route("/auth/email/submit", methods=["POST"], include_in_schema=False)
+    async def submit_email(request: Request) -> Response:
+        return await oauth.submit_email(request)
+
+    @server.custom_route("/auth/email/verify", methods=["GET"], include_in_schema=False)
+    async def email_verification_page(request: Request) -> Response:
+        return await oauth.email_verification_page(request)
+
+    @server.custom_route("/auth/email/verify", methods=["POST"], include_in_schema=False)
+    async def confirm_email(request: Request) -> Response:
+        return await oauth.confirm_email(request)
+
+    @server.custom_route("/auth/password/forgot", methods=["POST"], include_in_schema=False)
+    async def forgot_password(request: Request) -> Response:
+        return await oauth.forgot_password(request)
+
+    @server.custom_route("/auth/password/reset", methods=["GET"], include_in_schema=False)
+    async def password_reset_page(request: Request) -> Response:
+        return await oauth.password_reset_page(request)
+
+    @server.custom_route("/auth/password/reset", methods=["POST"], include_in_schema=False)
+    async def reset_password(request: Request) -> Response:
+        return await oauth.reset_password(request)
+
+    @server.tool(
+        name="list_account_emails",
+        title="List account emails",
+        description="Show the verified email addresses linked to your PDF2MD sign-in methods and the current transactional email.",
+        structured_output=False,
+    )
+    async def list_account_emails(ctx: Context) -> str:
+        access_token = get_access_token()
+        if not access_token or not access_token.subject:
+            raise PermissionError("A PDF2MD account is required")
+        return json.dumps(store.account_emails(access_token.subject), ensure_ascii=False)
+
+    @server.tool(
+        name="set_transactional_email",
+        title="Set transactional email",
+        description="Choose one of the verified email addresses already linked to your PDF2MD account for transactional messages.",
+        structured_output=False,
+    )
+    async def set_transactional_email(email: str, ctx: Context) -> str:
+        access_token = get_access_token()
+        if not access_token or not access_token.subject:
+            raise PermissionError("A PDF2MD account is required")
+        if not store.set_transactional_email(access_token.subject, email):
+            return "That address is not a verified email linked to this account. Verify and link it first."
+        return "Transactional email updated."
 
     return server, store
 
@@ -207,4 +282,5 @@ if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
     uvicorn.run("pdf2md_server.server:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+
 
