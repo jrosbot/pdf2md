@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pdf2md",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Convert PDF attachments into Markdown through an authenticated MCP server, with an optional local Python CLI.",
   "author": {
     "name": "THE DUCKS IN A ROW S.L.",
@@ -60,7 +60,7 @@
           "SI",
           "SK"
         ],
-        "release_notes": "Adds an authenticated MCP server with Google, Microsoft and Apple OAuth/OIDC, a 100 MB daily quota per account, and temporary PDF processing."
+        "release_notes": "Adds verified email/password sign-in through Brevo, Google, Microsoft and Apple login, secure account linking without email-based auto-merging, selectable verified transactional email, a 100 MiB daily quota, and local Docker development support."
       }
     }
   }

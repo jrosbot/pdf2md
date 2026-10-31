@@ -24,11 +24,7 @@ class ProviderSettings:
 
 @dataclass(frozen=True)
 class Settings:
-    """Runtime configuration loaded from environment variables.
-
-    The production deployment supplies provider credentials through its secret
-    manager. No credentials belong in the repository.
-    """
+    """Runtime configuration loaded from environment variables."""
 
     public_base_url: str
     issuer_url: str
@@ -42,6 +38,9 @@ class Settings:
     oauth_state_ttl_seconds: int = 600
     allowed_download_hosts: tuple[str, ...] = ()
     providers: tuple[ProviderSettings, ...] = ()
+    brevo_api_key: str | None = None
+    email_from: str | None = None
+    email_from_name: str = "PDF2MD"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -50,42 +49,32 @@ class Settings:
         resource_url = os.getenv("PDF2MD_RESOURCE_URL", f"{public_base_url}/mcp").rstrip("/")
         database_path = Path(os.getenv("PDF2MD_DATABASE_PATH", "./data/pdf2md.sqlite3")).expanduser()
         session_secret = os.getenv("PDF2MD_SESSION_SECRET", "")
-
         providers = (
-            ProviderSettings(
-                "google",
-                os.getenv("PDF2MD_GOOGLE_ISSUER", "https://accounts.google.com").rstrip("/"),
-                os.getenv("PDF2MD_GOOGLE_CLIENT_ID"),
-                os.getenv("PDF2MD_GOOGLE_CLIENT_SECRET"),
-            ),
-            ProviderSettings(
-                "microsoft",
-                os.getenv("PDF2MD_MICROSOFT_ISSUER", "https://login.microsoftonline.com/common/v2.0").rstrip("/"),
-                os.getenv("PDF2MD_MICROSOFT_CLIENT_ID"),
-                os.getenv("PDF2MD_MICROSOFT_CLIENT_SECRET"),
-            ),
-            ProviderSettings(
-                "apple",
-                os.getenv("PDF2MD_APPLE_ISSUER", "https://appleid.apple.com").rstrip("/"),
-                os.getenv("PDF2MD_APPLE_CLIENT_ID"),
-                os.getenv("PDF2MD_APPLE_CLIENT_SECRET"),
-            ),
+            ProviderSettings("google", os.getenv("PDF2MD_GOOGLE_ISSUER", "https://accounts.google.com").rstrip("/"),
+                             os.getenv("PDF2MD_GOOGLE_CLIENT_ID"), os.getenv("PDF2MD_GOOGLE_CLIENT_SECRET")),
+            ProviderSettings("microsoft", os.getenv("PDF2MD_MICROSOFT_ISSUER", "https://login.microsoftonline.com/common/v2.0").rstrip("/"),
+                             os.getenv("PDF2MD_MICROSOFT_CLIENT_ID"), os.getenv("PDF2MD_MICROSOFT_CLIENT_SECRET")),
+            ProviderSettings("apple", os.getenv("PDF2MD_APPLE_ISSUER", "https://appleid.apple.com").rstrip("/"),
+                             os.getenv("PDF2MD_APPLE_CLIENT_ID"), os.getenv("PDF2MD_APPLE_CLIENT_SECRET")),
         )
-
         return cls(
-            public_base_url=public_base_url,
-            issuer_url=issuer_url,
-            resource_url=resource_url,
-            database_path=database_path,
-            session_secret=session_secret,
+            public_base_url=public_base_url, issuer_url=issuer_url, resource_url=resource_url,
+            database_path=database_path, session_secret=session_secret,
             max_file_bytes=int(os.getenv("PDF2MD_MAX_FILE_BYTES", str(25 * 1024 * 1024))),
             daily_quota_bytes=int(os.getenv("PDF2MD_DAILY_QUOTA_BYTES", str(100 * 1024 * 1024))),
             access_token_ttl_seconds=int(os.getenv("PDF2MD_ACCESS_TOKEN_TTL", "3600")),
             refresh_token_ttl_seconds=int(os.getenv("PDF2MD_REFRESH_TOKEN_TTL", str(30 * 24 * 3600))),
-            oauth_state_ttl_seconds=int(os.getenv("PDF2MD_OAUTH_STATE_TTL", "600")),
+            oauth_state_ttl_seconds=int(os.getenv("PDF2MD_OAUTH_STATE_TTL", "1800")),
             allowed_download_hosts=_csv(os.getenv("PDF2MD_ALLOWED_DOWNLOAD_HOSTS")),
             providers=providers,
+            brevo_api_key=os.getenv("PDF2MD_BREVO_API_KEY"),
+            email_from=os.getenv("PDF2MD_EMAIL_FROM"),
+            email_from_name=os.getenv("PDF2MD_EMAIL_FROM_NAME", "PDF2MD"),
         )
+
+    @property
+    def email_password_enabled(self) -> bool:
+        return bool(self.brevo_api_key and self.email_from)
 
     def validate(self, *, production: bool = False) -> None:
         if production and (not self.session_secret or len(self.session_secret) < 32):
@@ -105,4 +94,3 @@ class Settings:
     @property
     def enabled_providers(self) -> tuple[ProviderSettings, ...]:
         return tuple(item for item in self.providers if item.enabled)
-

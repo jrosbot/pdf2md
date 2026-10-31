@@ -3,5 +3,7 @@
 __pycache__
 *.pyc
 tests
-converted-markdown
 data
+converted-markdown
+.env
+.env.*
