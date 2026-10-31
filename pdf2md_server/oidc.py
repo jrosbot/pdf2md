@@ -63,9 +63,12 @@ class OIDCClient:
             "scope": " ".join(self.settings.scopes),
             "state": state,
             "nonce": nonce,
-            "code_challenge": _pkce_challenge(verifier),
-            "code_challenge_method": "S256",
         }
+        if self.settings.response_mode:
+            params["response_mode"] = self.settings.response_mode
+        if self.settings.supports_pkce:
+            params["code_challenge"] = _pkce_challenge(verifier)
+            params["code_challenge_method"] = "S256"
         return f"{metadata['authorization_endpoint']}?{urlencode(params)}"
 
     async def exchange_code(self, *, code: str, verifier: str, redirect_uri: str) -> dict[str, Any]:
@@ -76,8 +79,9 @@ class OIDCClient:
             "redirect_uri": redirect_uri,
             "client_id": self.settings.client_id,
             "client_secret": self.settings.client_secret,
-            "code_verifier": verifier,
         }
+        if self.settings.supports_pkce:
+            data["code_verifier"] = verifier
         async with httpx.AsyncClient(timeout=20, follow_redirects=False) as client:
             response = await client.post(metadata["token_endpoint"], data=data)
             response.raise_for_status()
