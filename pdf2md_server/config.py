@@ -16,6 +16,8 @@ class ProviderSettings:
     client_id: str | None
     client_secret: str | None
     scopes: tuple[str, ...] = ("openid", "email", "profile")
+    supports_pkce: bool = True
+    response_mode: str | None = None
 
     @property
     def enabled(self) -> bool:
@@ -55,7 +57,9 @@ class Settings:
             ProviderSettings("microsoft", os.getenv("PDF2MD_MICROSOFT_ISSUER", "https://login.microsoftonline.com/common/v2.0").rstrip("/"),
                              os.getenv("PDF2MD_MICROSOFT_CLIENT_ID"), os.getenv("PDF2MD_MICROSOFT_CLIENT_SECRET")),
             ProviderSettings("apple", os.getenv("PDF2MD_APPLE_ISSUER", "https://appleid.apple.com").rstrip("/"),
-                             os.getenv("PDF2MD_APPLE_CLIENT_ID"), os.getenv("PDF2MD_APPLE_CLIENT_SECRET")),
+                             os.getenv("PDF2MD_APPLE_CLIENT_ID"), os.getenv("PDF2MD_APPLE_CLIENT_SECRET"),
+                             scopes=("openid", "email", "name"), supports_pkce=False,
+                             response_mode="form_post"),
         )
         return cls(
             public_base_url=public_base_url, issuer_url=issuer_url, resource_url=resource_url,
